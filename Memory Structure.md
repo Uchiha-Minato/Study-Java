@@ -91,5 +91,109 @@
     2.jmap工具 - 查看堆内存占用情况
         jmap -heap [pid]
     3.jconsole工具 - 图形界面多功能监测工具
+![jconsole](./Pictures/jconsole.png)
 
- 
+## 5.方法区 - Method Area
+
+JVM规范中对方法区的定义：
+
+    1.是所有Java虚拟机线程共享的区域，存储了与类结构相关的信息（成员方法，构造器，成员变量，运行时常量池等）
+    2.方法区在虚拟机启动时被创建，逻辑上是堆的组成部分（不同JVM厂商实现逻辑不同）
+    3.方法区也会导致内存溢出错误
+        PermGen永久代
+        Metaspace元空间 - 使用系统物理内存
+![jvmMA](./Pictures/jvm方法区组成.png)
+
+### 方法区内存溢出
+
+**JDK7以前** 永久代内存溢出，抛出
+
+    java.lang.OutOfMemoryError: PermGen space
+
+**JDK8之后** 元空间内存溢出，抛出
+
+    java.lang.OutOfMemoryError: Metaspace
+
+实际情况中 spring或mybatis中运用字节码的动态生成技术，会产生大量的类，使用不当容易造成方法区内存溢出
+
+### 运行时常量池 - Runtime Constant Pool
+
+**Java二进制字节码 *.class文件*** 包括
+
+    类基本信息 常量池 类方法定义（包含虚拟机指令）
+
+**常量池** 保存在*.class文件中 就是一张表，虚拟机指令根据这张常量表找到要执行的类名、方法名、参数类型、字面量等信息
+
+**运行时常量池** 当该类被加载，该类的常量池信息就会放入运行时常量池中，并把里面的符号地址变成真实物理地址
+
+### StringTable 串池 - hashtable结构，不能扩容
+下面是一个例子：
+
+    public class Test5 {
+        public static void main(String[] args) {
+            String s1 = "a";
+            String s2 = "b";
+            String s3 = "ab";
+            String s4 = s1 + s2;
+
+            System.out.println( s3 == s4); //false
+        }
+    }
+
+打开Terminal，使用javap -v Test5.class反编译字节码文件，找到常量池和本地变量表：
+
+**常量池Constant Pool**
+![constantpool](./Pictures/constantPool.png)
+**本地变量表LocalVariableTable**
+![localVariableTable](./Pictures/localVariableTable.png)
+反编译后的主方法中：
+![main](./Pictures/mainTest5.png)
+其中为Java字节码，部分代码含义如下：
+<table>
+    <tr> 
+        <th colspan="3">上图部分代码含义</th>
+    </tr>
+    <tr>
+        <td>代码</td>
+        <td>含义</td>
+        <td>备注</td>
+    </tr>
+    <tr>
+        <td>ldc</td>
+        <td>根据后面的编号（如#7）到常量池中查找并加载信息</td>
+        <td>信息可以是常量或是对象的引用等</td>
+    </tr>
+    <tr>
+        <td>astore_1</td>
+        <td>把加载好的信息存入Slot为1的局部变量，保存到表中</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>aload_1</td>
+        <td>从局部变量表中加载Slot为1的变量</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>invokedynamic</td>
+        <td>调用动态方法</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>getstatic</td>
+        <td>获得静态方法</td>
+        <td></td>
+    </tr>
+</table>
+
+    本机Java环境为JDK 15.0.2
+    在JDK 9之前，使用运算符"+"合并字符串变量，底层使用的是StringBuilder的append()方法，合并完成之后再toString();
+
+    在JDK 9之后，使用运算符"+"合并字符串变量，底层使用如下方法：
+    动态方法所在类为
+        java.lang.invoke.StringConcatFactory
+    方法名为（使用常量进行合并）
+        static CallSite makeConcatWithConstants(...)
+    返回值为
+        一个CallSite，其目标可用于执行字符串连接，并使用给定的方法描述的动态连接参数
+    具体合并过程对应上图中字节码编号的9，10，11，16
+    
