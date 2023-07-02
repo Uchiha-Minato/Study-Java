@@ -39,7 +39,7 @@
     A3.安全。因为局部变量线程私有。若是类似static共享变量 则需要考虑线程安全。
     若是变量引用了对象并逃离了方法的作用范围（作为参数传入或是作为返回值返回）就不再线程安全。
 
-![threadOwn](./Pictures/局部变量线程私有.png)
+![threadOwn](/Pictures/局部变量线程私有.png)
 
 ### 栈内存溢出
 
@@ -91,7 +91,7 @@
     2.jmap工具 - 查看堆内存占用情况
         jmap -heap [pid]
     3.jconsole工具 - 图形界面多功能监测工具
-![jconsole](./Pictures/jconsole.png)
+![jconsole](/Pictures/jconsole.png)
 
 ## 5.方法区 - Method Area
 
@@ -102,7 +102,7 @@ JVM规范中对方法区的定义：
     3.方法区也会导致内存溢出错误
         PermGen永久代
         Metaspace元空间 - 使用系统物理内存
-![jvmMA](./Pictures/jvm方法区组成.png)
+![jvmMA](/Pictures/jvm方法区组成.png)
 
 ### 方法区内存溢出
 
@@ -143,13 +143,13 @@ JVM规范中对方法区的定义：
 打开Terminal，使用javap -v Test5.class反编译字节码文件，找到常量池和本地变量表：
 
 **常量池Constant Pool**
-![constantpool](./Pictures/constantPool.png)
+![constantpool](/Pictures/constantPool.png)
 
 **本地变量表LocalVariableTable**
-![localVariableTable](./Pictures/localVariableTable.png)
+![localVariableTable](/Pictures/localVariableTable.png)
 
 反编译后的主方法中：
-![main](./Pictures/mainTest5.png)
+![main](/Pictures/mainTest5.png)
 
 其中为Java字节码，部分代码含义如下：
 <table>

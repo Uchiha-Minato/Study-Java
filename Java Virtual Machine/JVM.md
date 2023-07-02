@@ -23,7 +23,7 @@ JRE - Java Runtime Environment Java运行时环境
 
 JDK - Java Development Kit Java开发工具包
 
-![avatar](./Pictures/jvm_jre_jdk.png)
+![avatar](/Pictures/jvm_jre_jdk.png)
 
 JVM - Java虚拟机（运行环境，空壳）
 
@@ -33,7 +33,7 @@ JVM - Java虚拟机（运行环境，空壳）
 
 ## 学习路线
 
-![avatar](./Pictures/学习路线.png)
+![avatar](/Pictures/学习路线.png)
 
     Java字节码 -> 类加载器 -> JVM
     
