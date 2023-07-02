@@ -25,7 +25,7 @@
     栈帧 - 栈内元素
     虚拟机栈栈帧 - 每个方法调用时需要的内存
 
-**每个线程只能有一个活动帧栈**，对应着当前正在执行的方法，**在本线程JVM栈栈顶**
+**每个线程只能有一个活动栈帧**，对应着当前正在执行的方法，**在本线程JVM栈栈顶**
 
 ### 问题分析
 
@@ -144,10 +144,13 @@ JVM规范中对方法区的定义：
 
 **常量池Constant Pool**
 ![constantpool](./Pictures/constantPool.png)
+
 **本地变量表LocalVariableTable**
 ![localVariableTable](./Pictures/localVariableTable.png)
+
 反编译后的主方法中：
 ![main](./Pictures/mainTest5.png)
+
 其中为Java字节码，部分代码含义如下：
 <table>
     <tr> 
@@ -196,4 +199,29 @@ JVM规范中对方法区的定义：
     返回值为
         一个CallSite，其目标可用于执行字符串连接，并使用给定的方法描述的动态连接参数
     具体合并过程对应上图中字节码编号的9，10，11，16
+
+由此可见，**作为final的String类**，已经没有了变量与常量的区别，只要创建了就是常量，底层统一使用makeConcatWithConstants()方法合并。
     
+### StringTable特性
+
+1.常量池中的字符串仅仅是符号，第一次用到时才是对象;
+
+2.利用串池的机制，可以避免重复创建字符串对象;
+
+3.可以使用intern()方法，主动将串池中还没有的字符串对象放入串池。
+
+    Java SE 15 & JDK 15 API
+    java.lang.Object ⬇
+        java.lang.String
+    public String intern()
+    返回字符串对象的规范表示。
+    结果：与此字符串具有相同内容的字符串，但保证来自唯一串池。
+
+    JVM中最初为空的串池由String类私有维护。
+
+    此方法被调用时，如果串池中已经包含了一个由equals(Object)方法确定的与此对象相等的字符串，则返回池中已有的字符串；否则将这个字符串对象(String Object)加入串池中，并返回这个对象的引用。
+
+    由此可见，对于任意两个字符串s和t，s.intern() == t.intern()结果是true，当且仅当s.equals(t)为true。
+
+
+
