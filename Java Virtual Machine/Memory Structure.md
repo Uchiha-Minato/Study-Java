@@ -27,6 +27,19 @@
 
 **每个线程只能有一个活动栈帧**，对应着当前正在执行的方法，**在本线程JVM栈栈顶**
 
+每当一个新的线程被创建，JVM都会分配一个虚拟机栈。
+
+![jvmstacks](https://img-blog.csdnimg.cn/20200720140238838.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3BlYW51dHd6aw==,size_16,color_FFFFFF,t_70)
+
+JVM Stacks以栈帧为单位来保存线程运行状态。
+
+*栈帧保存的部分数据：*
+
+    1.方法的局部变量表
+    2.操作数栈
+    3.动态链接
+    4.方法返回地址等信息。
+
 ### 问题分析
 
     Q1.垃圾回收是否涉及栈内存
@@ -61,6 +74,7 @@
 
 案例2：程序运行很长时间没有结果（线程死锁）
 
+<br>
 
 ## 3.本地方法栈 - Native Method Stacks
 
