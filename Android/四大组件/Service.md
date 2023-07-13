@@ -1,5 +1,7 @@
 # Service
 
+应用基础知识 - https://developer.android.google.cn/guide/components/fundamentals?hl=zh-cn
+
 Service - 服务，是一种运行时用户不可见的活动
 
 *可以理解成没有布局的Activity*
@@ -90,3 +92,64 @@ Service - 服务，是一种运行时用户不可见的活动
     flags - 绑定操作的选项。
 
 ServiceConnection是一个接口，用于访问服务。
+
+5.在类中定义变量实现这个接口，具体实现：
+
+    private ServiceConnection conn = new ServiceConnection {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //服务连接时的回调方法
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            //服务断开时的回调方法
+        }
+    }
+
+其中，第一个方法中的第二个参数是 IBinder类型的，其实就是需要绑定的那个Service
+
+Service在被绑定时，一开始重写的onBind()方法就会被调用，这个方法的返回值类型就是IBinder。
+
+6.在Service类中创建内部类MyBinder继承Binder类，Binder类实现了IBinder接口。具体实现：
+
+    public class MyBindService extends Service {
+        ...
+        @Nullable
+        @Override
+        public IBinder onBind(Intent intent) {
+            return new MyBinder();
+        }
+        ...
+        public class MyBinder extends Binder {
+            private MyBindService mBindService;
+            public MyBinder(MyBinderService bindService) {
+                mbindService = bindService;
+            }
+
+            public void method() {
+                ...
+            }
+        }
+    }
+
+当onBind()方法被调用时，一个MyBinder类的对象就被返回到了onServiceConnect(Activity中的)方法那里
+
+于是就可以通过这个对象实例来调用MyBinder中的方法了。
+
+7.在Activity中接收上述MyBinder对象，在实现方法中接收时cast
+
+    private MyBindService.MyBinder mBinder = null;
+    private ServiceConnection conn = new ServiceConnection {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //服务连接时的回调方法
+            mBinder = (MYBindService.MyBinder)service;
+            mBinder.method();//调用Service中的方法
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            //服务断开时的回调方法
+        }
+    }
+
+通过上述所有步骤，就完成了绑定服务的连接与使用。
