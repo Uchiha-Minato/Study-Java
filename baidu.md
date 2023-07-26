@@ -81,9 +81,19 @@ E:S0:S1大小比默认8:1:1
 
 **虚引用必须和引用队列（ReferenceQueue）联合使用。**
 
-4.如果在try中return，finally方法会不会执行
+<br>4.如果在try中return，finally方法会不会执行
 
-    会
+**通常情况下，无论是否触发异常，finally语句块必然会执行。**
+
+    主要用于：
+    资源释放 业务日志打印
+
+*finally语句块在以下两种情况下不会执行：*
+
+    1.程序没有进入到try的范围就因为异常而终止
+    2.在try或者catch语句块中，执行了
+    System.exit(0)语句，导致JVM直接退出
+
 
 ## Android
 
