@@ -73,7 +73,7 @@ deploy - 将jar上传到远程仓库
 
 以上步骤实现了所有子模块都能使用父类配置。
 
-如果想实现子模块自主选择需要的依赖，就需要在父模块的配置中使用<dependencyManagement>给子模块提供“可以选择的依赖列表”，是否使用依赖由子模块决定。
+如果想实现子模块自主选择需要的依赖，就需要在父模块的配置中使用< dependencyManagement >给子模块提供“可以选择的依赖列表”，是否使用依赖由子模块决定。
 
     <dependencyManagement>
         <dependencies>
@@ -147,5 +147,10 @@ deploy - 将jar上传到远程仓库
         </dependency>
     </dependencies>
 
-**配置<scope>import</scope>依赖范围的使用**
+**配置< scope >import< /scope >依赖范围的使用**
 
+此属性作用是在两个不同的子模块之间继承<dependencyManagement>中的依赖。
+
+**配置 < plginManagement > 的使用**
+
+这个配置的作用是管理插件。
