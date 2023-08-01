@@ -9,4 +9,5 @@ Some Java Basics（持续更新）
     4.算法
     5.Android基础
     6.JavaWeb基础
+    7.设计模式
     ..
