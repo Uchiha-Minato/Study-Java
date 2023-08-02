@@ -1,11 +1,1 @@
-Design_Patterns/out/production/FactoryMethod/Description.md
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/Application.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/BallPen.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/abstractFactory/CoreCreator.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/abstractProduct/PenCore.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/concreteFactory/BlackCoreCreator.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/concreteFactory/BlueCoreCreator.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/concreteFactory/RedCoreCreator.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/concreteProduct/BlackPenCore.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/concreteProduct/BluePenCore.class
-Design_Patterns/out/production/FactoryMethod/com/lhy/dsp/concreteProduct/RedPenCore.class
+Design_Patterns/out/
