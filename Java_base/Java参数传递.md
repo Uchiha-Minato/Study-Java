@@ -8,7 +8,7 @@
     2.调用过程计算实参的值，并将其放在形式单元中；
     3.被调用过程像使用局部变量一样使用这些形式单元。
 
-![callbyvalue](./Pictures/call-by-value.png)
+![callbyvalue](../Pictures/call-by-value.png)
 
 ### 2.传地址（Call-by-reference）
 

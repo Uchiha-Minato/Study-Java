@@ -16,7 +16,7 @@
     Student zs2 = zs;
     System.out.println( zs2 == zs ); //true，指向同一对象
 
-![==](./Pictures/双等号.png)
+![==](../Pictures/双等号.png)
 
 <br>对于equals()方法，**一般在自定义的类中重写此方法，好来判断对象内部的属性是否相等。** 重写了此方法的类：
 
