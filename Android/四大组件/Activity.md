@@ -96,3 +96,50 @@ onCreate()结束后，Activity将进入**已启动**状态，并对用户可见�
 
 - **onResume()**
 
+系统会在Activity开始与用户互动之前调用这个回调。
+
+此时Activity在Activity栈的栈顶，并会捕获所有的用户输入。
+
+onResume()后总是跟着onPause()回调。
+
+- **onPause()**
+
+当Activity失去焦点并进入"已暂停"状态时，系统就会调用这个方法。
+
+调用则代表用户正在离开该Activity，Activity很快将进入“已停止”状态。
+
+如果用户希望界面继续更新，则处于“已暂停”状态的Activity也可以继续更新界面。
+
+onPause()执行完毕后，下一个回调是onStop()或onResume()。
+
+- **onStop()**
+
+当Activity对用户*不再可见*时，系统会调用onStop()。
+
+不再可见有多种情况：
+- Activity被销毁
+- 有新的Activity启动
+- 现有的Activity正在进入“已恢复”状态并覆盖了已停止的Activity
+
+下一个回调将是onRestart()或onDestroy()。
+
+- **onRestart()**
+
+处于“已停止”状态的Activity即将重启时，系统就会调用onRestart()。
+
+这个回调后面总是跟着onStrat()。
+
+- **onDestroy()**
+
+系统会在销毁Activity前调用此回调。
+
+通常，实现onDestroy()是为了确保在销毁时释放所有占用的资源。
+
+![activity](../pic_android/Lifecycle_activity.png)
+
+### Activity栈
+
+后进先出，栈顶的那个Activity处于活动状态，其他的处于暂停或停止状态。
+
+按返回键时，将栈顶的Activity弹栈。
+
