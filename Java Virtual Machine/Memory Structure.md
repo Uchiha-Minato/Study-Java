@@ -163,6 +163,51 @@ JVM规范中对方法区的定义：
         }
     }
 
+***上述代码中，代码编译执行由上到下。***
+
+- 加入串池中的字符串依次是 "a", "b", "ab"。
+
+- 当执行到s4时，从串池中依次加载 "a", "b";
+
+- 然后再调用makeConcatWithConstant()方法将字符串拼接。
+
+- 拼接得到的新字符串起名为s4，存入堆内存中。
+
+- 由于==比较的是两个引用指向的内存地址，s3在串池中，s4在堆中，因此打印false。
+
+<br>
+
+**以下代码验证**：
+- s1=new String("a") 与 s2="a"的不同
+- s3="ab" 与 s4="ab"的相同
+
+        psvm(String[]) {
+            String s1 = new String("a");
+            String s2 = "a";
+
+            String s3 = "ab";
+            String s4 = "ab";
+
+            sout(System.indentityHashCode(s1));
+            sout(System.indentityHashCode(s2));
+            sout(System.indentityHashCode(s3));
+            sout(System.indentityHashCode(s4));
+        }
+
+**方法说明：**
+
+    package java.lang ⬇
+        java.lang.System ⬇
+    public static int identityHashCode(Object x)
+    返回值：对象的引用 x 所指向的内存地址。
+    无论该对象所在的类是否重写了hashCode()方法。
+
+运行结果：
+
+![identityHashCode](../Pictures/identityHashCode.png)
+
+<br>
+
 打开Terminal，使用javap -v Test5.class反编译字节码文件，找到常量池和本地变量表：
 
 **常量池Constant Pool**
