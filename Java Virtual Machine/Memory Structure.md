@@ -291,7 +291,7 @@ JVM规范中对方法区的定义：
 
     由此可见，对于任意两个字符串s和t，s.intern() == t.intern()结果是true，当且仅当s.equals(t)为true。
 
-4.StringTable会发生垃圾回收。只会在堆内存紧张时触发。
+4.StringTable会发生垃圾回收。***只会在堆内存紧张时触发。***
 
 ### StringTable调优
 
@@ -311,6 +311,126 @@ JVM规范中对方法区的定义：
     常见于NIO操作时，用于数据缓冲区；
     分配回收成本较高，但读写性能高；
     不受JVM内存回收管理。
+
+![directMem](../Pictures/direct_memory.png)
+
+***直接内存有点像适配器。***
+
+也会产生内存溢出问题。
+
+    List<ByteBuffer> list = new ArrayList<>();
+    int i = 0;
+    try {
+        while(true) {
+            ByteBuffer bb = ByteBuffer.allocateDirect(_100Mb);
+            list.add(bb);
+            i++;
+        } 
+    } finally {
+        sout(i);
+    }
+    java.lang.OutOfMemoryError: Direct buffer memory
+
+**ByteBuffer分配和释放直接内存：**
+
+**1. 调用静态方法allocateDirect()**
+
+    package java.nio ⬇
+    public abstract class ByteBuffer 
+        extends Buffer implements Comparable<ByteBuffer>
+    public static ByteBuffer allocateDirect(int capacity) {
+        return new DirectByteBuffer(capacity);
+    }
+
+**2. DirectByteBuffer构造方法中调用unsafe.allocateMemory()**
+
+    package java.nio ⬇
+    class DirectByteBuffer 
+        extends MappedByteBuffer implements DirectBuffer
+    DirectByteBuffer(int cap) { 
+        //默认权限，同包可见，子类不可见
+        ...
+        long size = Math.max(1L, (long)cap + (pa ? ps : 0));
+        try {
+            base = UNSAFE.allocateMemory(size);
+        } catch (OutOfMemoryError x) {
+            Bits.unreserveMemory(size, cap);
+            throw x;
+        }
+        ...
+    }
+
+**3. 主动调用unsafe.freeMemory()方法释放直接内存。**
+
+在步骤2中，DirectBuffer的构造方法中还定义了一个cleaner对象：
+
+    private final Cleaner cleaner;
+    cleaner = Cleaner.create(this, new Deallocator(base,size,cap));
+
+查看Deallocate源码，发现是个任务对象（实现了Runnable接口）
+
+    package java.nio ⬇
+    class DirectByteBuffer ⬇
+    private static class Deallocator //静态私有内部类
+        implements Runnable {
+        private static Unsafe unsafe = Unsafe.getUnsafe();
+        private long address;
+        private long size;
+        private int capacity;
+        ...
+        @Override
+        public void run() {
+            if(address == 0) {
+                return;
+            }
+            unsafe.freeMemory(address);
+            address = 0;
+            Bits.unreserveMemory(size, capacity);
+        }
+    }
+
+run()方法中调用了freeMemory()方法。
+
+*Cleaner在Java类库中，是一个虚引用类，关联了DirectByteBuffer。*
+
+ByteBuffer实现类内部，使用Cleaner来监测ByteBuffer对象。
+
+    Java使用专门的引用队列ReferenceQueue
+    和线程ReferenceHandler
+    来监视虚引用对象。
+    见GC。
+
+当关联对象(DirectByteBuffer)被GC时，就会触发虚引用的clean()方法，执行刚刚那个任务对象的run()方法以释放直接内存。
+
+    package jdk.internal.ref ⬇
+    public class Cleaner
+        extends PhantomReference<Object>
+
+**Unsafe类：一个非常底层的类**
+
+*分配或释放直接内存都是调用它的方法。*
+
+    package jdk.internal.misc ⬇
+    public final class Unsafe {
+        private Unsafe() {}
+        //分配直接内存
+        public long allocateMemory(long bytes){..}
+        //释放直接内存
+        public void freeMemory(long address){..}
+        ...
+    }
+
+由于构造为private，不能直接使用。
+
+需要使用 ***反射*** 获取这个类的对象。
+
+一般做JVM调优时，设置虚拟机参数：
+
+    -XX:+DisableExplicitGC 以禁用显式GC。
+    显式GC：System.gc()方法，执行一次Full GC。
+    过多地显式调用此方法，会影响性能。
+
+然后通过反射获得Unsafe类的对象，手动管理直接内存。
 
  <br>...
 
