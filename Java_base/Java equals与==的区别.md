@@ -59,4 +59,4 @@ Object类文档中对于方法equals()的定义：
     参数
     obj - 要与之比较的参考对象。
     结果
-    true如果此对象与obj参数相同; 否则为false 。
+    true如果此对象与obj参数相同; 否则为false。
