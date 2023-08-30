@@ -116,6 +116,33 @@
 
 实际上效率很低，因为那个线程优先级很低，导致finallize()方法迟迟不被调用。其次需要两次GC才能真正释放空间。
 
+<br>
+
+***举例：使用引用队列来释放软引用本身***
+
+    //list -> SoftReference -> byte[] 软引用链
+    List<SoftReference<byte[]>> list = new ArrayList<>();
+
+    //引用队列
+    ReferenceQueue<byte[]> queue = new ReferenceQueue<>();
+
+    for(int i = 0; i < 5; i++) {
+        //关联引用队列：在构造中添加队列作为参数
+        SoftReference<byte[]> ref = new SoftReference<>(new byte[_4MB], queue);
+        sout(ref.get);
+        list.add(ref);
+        sout(list.size);
+    }
+
+    Reference<? extends byte[]> poll = queue.poll();
+    //遍历引用队列，删除软引用本身
+    while(poll != null) {
+        list.remove(poll);
+        poll = queue.poll();
+    }
+
+<br>
+
 ## 2.垃圾回收算法
 
 以下三种算法会分情况使用。
@@ -194,6 +221,53 @@ JVM将堆内存分为 *新生代Young Generation* 和 *老年代Old Generation*
 |晋升详情|-XX:+PrintTenuringDistribution|
 |GC详情|-XX:+PrintGCDetails -verbose:GC|
 |Full GC前Minor GC|-XX:+ScavengeBeforeFullGC|
+
+### 3.2 GC分析 大对象直接晋升 堆内存溢出
+
+*大对象*（如10M的byte[]）在**老年代空间足够**且**新生代空间肯定不够**的情况下会直接晋升至老年代。
+
+示例：
+    
+    设置堆空间大小为20M，from区和to区不自动变化
+    -Xmx20M -Xms20M -Xmn10M -XX:+UseSerialGC -verbose:gc -XX:+PrintGCDetails 
+
+    往ArrayList集合中添加一个8MB的byte数组
+
+运行结果如下图所示：
+
+![bigobj_oom](../Pictures/大对象oom.png)
+
+    可以看到，老年代tenured generation
+    占用率直接提升至80%，且没有触发GC。
+
+***注意：在别的线程中Java堆内存溢出，不会使主线程停止。***
+
+测试类TestJVM1:
+
+    public class TestJVM1 {
+        prsf int _8MB = 8*1024*1024;
+        psvm(String[] args) throws InterruptedExeption{
+            new Thread(()->{
+                ArrayList<byte[]> list=new A..<>();
+                list.add(_8MB);
+                list.add(_8MB);   
+            }).start();
+
+            sout("Sleep...");
+            Thread.sleep(2000L);
+        }
+    }
+
+在上述测试类中，新创建了一个匿名线程使得堆内存溢出。
+
+运行结果：
+
+![oom](../Pictures/OutOfMemErr_OOM.png)
+
+    新开线程中报错：Java堆内存溢出
+    但主线程并没有因此暂停，随后还进行了一次GC。
+
+**一个线程内的OutOfMemoryError不会导致整个Java主线程意外结束。**
 
 ## 4.垃圾回收器
 
