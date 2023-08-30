@@ -271,9 +271,92 @@ JVM将堆内存分为 *新生代Young Generation* 和 *老年代Old Generation*
 
 ## 4.垃圾回收器
 
-### 4.1 吞吐量优先
+### 4.1 串行
 
-### 4.2 响应时间优先
+- 单线程
+- 适用于堆内存较小的情况
+
+![serialGC](../Pictures/UseSerialGC.png)
+
+**-XX:+UseSerialGC = Serial + SerialOld**
+
+- Serial: 工作在新生代，用的复制算法
+- SerialOld: 工作在老年代，用的标记+整理算法
+
+*都是单线程工作，使用算法有所不同。*
+
+### 4.2 吞吐量优先 - 并行
+
+**多个GC线程并行执行，但不允许用户线程执行。**
+
+- 多线程，适合堆内存较大的场景
+- 适合多核cpu
+- 让单位时间内GC时stop the world时间最短
+
+![parallelGc](../Pictures/UseParallelGC.png)
+
+VM参数：
+
+- -XX:+UseParalleGC ~ -XX:+UseParallelOldGC
+  
+    随便开启一个，另一个都绑定开启
+
+- -XX:+UseAdaptiveSizePolicy
+ 
+    采用自适应大小调整策略（Eden from to）
+
+- -XX:GCTimeRatio=ratio
+  
+    目标1：调整GC时间与总时间的比例（一般设置为19）
+
+- -XX:MaxGCPauseMillis=ms
+  
+    目标2：设置最大暂停毫秒数（默认200ms）
+    
+&emsp;**目标1与目标2是对立的目标。**
+
+- -XX:ParallelGCThreads=n
+    
+    控制ParallelGC时的线程数
+
+### 4.3 响应时间优先 - 并发
+
+**用户线程与GC线程并发执行。**
+
+- 多线程，适合堆内存较大的场景
+- 适合多核cpu
+- 让单次GC时stop the world的时间尽可能短
+- *会对整个程序的吞吐量造成一定影响*
+
+![cmsGC](../Pictures/UseCMSGC.png)
+
+VM参数：
+
+- -XX:+UseConcMarkSweepGC ~ -XX:+UseParNewGC ~ SerialOld
+
+    Concurrent并发 CMS工作在老年代，标记+清除算法；
+    ParNewGC 工作在新生代，复制算法。
+    当并发失败时，CMS退化到串行垃圾回收的SerialOld
+    做一次串行整理，减少内存碎片后CMS才能继续工作。
+
+&emsp;*由于内存碎片问题，一旦发生并发失败，GC时间会一下子飙升。（CMS最大的问题）*
+
+&emsp;在初始标记时，线程数受到下面两个参数的影响:
+
+- -XX:ParallelGCThreads=n ~ -XX:ConcGCThreads=threads
+    
+    并行GC线程数，一般与CPU核数一样
+    并发GC线程数，一般是并行线程数的1/4
+
+- -XX:CMSInitiatingOccupancyFraction=percent
+
+    控制触发CMS GC的内存占比
+    当老年代内存占用到达设置值时，进行一次GC
+    主要用于处理新产生的浮动垃圾。
+
+- -XX:+CMSScavengeBeforeReMark
+
+    在重新标记之前，对新生代进行一次GC
 
 ## 5.GC调优
 
