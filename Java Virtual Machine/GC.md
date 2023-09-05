@@ -358,6 +358,116 @@ VM参数：
 
     在重新标记之前，对新生代进行一次GC
 
+### 4.4 G1 - Garbage First
+
+JDK 9 弃用了CMS垃圾回收器，改用G1作为默认垃圾回收器。
+
+适用场景
+- 同时注重吞吐量和低延迟，默认的暂停目标是200ms
+- 超大堆内存，会将堆划分为多个大小相等的区域（Region 大约是1248M）
+
+    每个区域都可以独立作为Eden、From、To、新生代、老年代。
+
+- 整体上是 **标记+整理**算法，*区域之间是复制算法* 。
+
+VM参数：
+- -XX:+UseG1GC
+- -XX:G1HeapRegionSize=size
+- -XX:MaxGCPauseMillis=time
+
+**(1) G1 GC阶段**
+
+![g1gc](../Pictures/G1GC.png)
+
+**(2) Young Collection 新生代**
+
+![g1gc](../Pictures/G1_Young.png)
+
+当伊甸园满时，把幸存对象复制进幸存区。
+
+![g1gc](../Pictures/G1_Young2.png)
+
+幸存区的对象够年龄的，晋升到老年代；不够年龄的接着复制。
+
+**(3) Young Collection + Concurrent Marking(并发标记)**
+
+- 在Young GC 时会进行GC Root的初始标记；
+- 老年代占用堆空间比例达到阈值时，进行并发标记。
+
+    -XX:InitiatingHeapOccupancyPercent=percent (defalut=45%)
+
+![g1gc](../Pictures/G1_YCCM1.png)
+
+**(4) Mixed Collection 混合收集**
+
+会对伊甸园、幸存区、老年代进行全面地垃圾回收。
+
+![g1gc](../Pictures/G1_Mixed1.png)
+
+- 最终标记（Remark）会STW
+- 拷贝存活（Evacuation）会STW
+
+G1会根据VM参数：**-XX:MaxGCPauseMillis=ms 最大暂停时间**有选择地回收。
+
+    找回收价值最大的回收。
+    对于老年代区域，优先回收垃圾最多的区域
+    以达到最大暂停时间的目标。
+
+**(5) Full GC**
+
+当G1老年代内存不足时，垃圾回收分两种情况。
+
+如果回收速度 > 新产生垃圾的速度，不叫Full GC，还是并发垃圾收集。
+
+如果回收速度 < 新产生垃圾的速度，并发收集失败，退化为串行收集。
+
+    这时就叫Full GC。
+    跟CMS很像。
+
+**(6) Young Collection跨代引用 - 老年代引用新生代**
+
+![g1gc](../Pictures/G1_incomingRef.png)
+
+卡表与Remembered Set。
+
+一个卡的大小大约是512KB。
+
+引用了新生代的卡区称为脏卡 dirty card
+
+在引用变更时通过post-write barrier + dirty card queue
+
+concurrent refinement threads 更新 Remembered Set
+
+**(7) Remark 重新标记**
+
+为了防止引用变更造成不必要的损失。因此要对对象的引用做进一步的检查。
+
+当对象的引用发生变化时，JVM会给它添加一个*写屏障*，并把这个对象加入队列中。
+
+    pre-write barrier 写屏障 + satb_mark_queue
+
+等到整个并发标记结束，对队列中的对象进行重新检查标记。
+
+**(8) JDK 8u20字符串去重**
+
+- 优点：节省大量内存
+- 缺点：略微多占用了cpu时间，新生代回收时间略微增加。
+
+-XX:+UseStringDeduplication
+
+    String s1 = new String("hello"); //char[]{'h','e','l','l','o'}
+    String s2 = new String("hello"); //char[]{'h','e','l','l','o'}
+
+将所有新分配的字符串放入一个队列；
+
+当新生代回收时，G1并发检查是否有字符串重复。
+
+若值一样，则让它们引用同一个char数组。
+
+*与String.intern()不同，intern()关注的是字符串对象，而字符串去重关注的是char数组。*
+
+...<br>
+
 ## 5.GC调优
 
 ..
