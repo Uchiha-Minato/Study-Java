@@ -80,3 +80,23 @@ Hash结构：
 - **HVALS** 获取一个hash类型key的所有value
 - **HINCRBY** 让一个hash类型的key的字段值自增并指定步长
 - **HSETNX** 添加一个hash类型key的field，前提是field不存在
+
+## List类型
+
+与LinkedList类似，可以看成是一个双向链表结构。
+
+特征：
+* 有序
+* 元素可以重复
+* 插入和删除快
+* 查询速度一般
+
+- **LPUSH key element ...** 向列表左侧插入一个或多个元素
+- **LPOP key** 移除并返回列表左侧的第一个元素，没有则返回nil
+- **RPUSH key element ...** 向列表右侧插入一个或多个元素
+- **RPOP key** 移除并返回列表右侧的第一个元素，没有则返回nil
+- **LRANGE key star end** 返回一段角标范围内的所有元素
+- **BLPOP和BRPOP** B代表阻塞（Block），与LPOP和RPOP类似
+
+    在没有元素时等待指定时间，而不是直接返回nil。
+
