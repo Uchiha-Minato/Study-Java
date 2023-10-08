@@ -19,13 +19,26 @@
     状态：成员属性
     行为：成员方法
 
-创建类的实例时需要调用类的*构造器/构造方法（Constructor）* - **必须为public，无返回值，方法名与类名完全一致**，如：
+创建类的实例时需要调用类的*构造器/构造方法（Constructor）* - **不必须为public，无返回值，方法名与类名完全一致**，如：
 
     public class Person {
         private String name;
         public Person(String name) {
             //构造方法
             this.name = name;
+        }
+    }
+
+    public class A {
+        private A() {
+            //私有构造方法 多用于单例模式
+        }
+
+        private A uniqueA;
+
+        public static A getA() {
+            uniqueA = new A();
+            return uniqueA;
         }
     }
 
