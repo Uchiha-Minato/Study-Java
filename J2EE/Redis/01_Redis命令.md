@@ -100,3 +100,48 @@ Hash结构：
 
     在没有元素时等待指定时间，而不是直接返回nil。
 
+## Set类型
+
+与HashSet类似，可以看成是value为null的HashMap。
+
+因为也是一个Hash表，因此具备与HashSet类似的特征：
+* 无序
+* 元素不可重复
+* 查找快
+* 支持交集、并集、差集功能
+
+- **SADD key member ...** 向set中添加一个或多个元素
+- **SREM key member ...** 移除set中的指定元素
+- **SCARD key** 返回set元素中的个数
+- **SISMEMBER key member** 判断一个元素是否存在于set中
+- **SMEMBERS** 获取set中的所有元素
+- **SINTER key1 key2 ...** 求key1与key2的交集
+- **SDIFF key1 key2 ...** 求key1与key2的差集
+- **SUNION key1 key2 ...** 求key1与key2的并集
+
+## SortedSet类型
+
+是一个可排序的set集合，与Java中额TreeSet有些类似，但底层数据结构差别大
+
+    TreeSet: 红黑树
+    SortedSet: 跳表SkipList + hash表
+
+SortedSet的每一个元素都带有一个score属性，可以基于score属性对元素排序。
+
+特征：
+* 可排序
+* 元素不重复
+* 查询速度快
+
+- **ZADD key score member** 添加一个或多个元素到sorted set，如存在则更新其score值
+- **ZREM key member** 删除sorted set中的一个指定元素
+- **ZSCORE key member** 获取sorted set中指定元素的score值
+- **ZRANK key member** 获取sorted set中指定元素的排名
+- **ZCARD key** 获取sorted set中元素个数
+- **ZCOUNT key min max** 统计score值在给定范围内的所有元素个数
+- **ZINCRBY key increment member** 让sorted set中的指定元素按照指定步长自增
+- **ZRANGE key min max** 按照score排序后，获取指定排名范围内的元素
+- **ZRANGEBYSCORE key min max** 按照score排序后，获取指定score范围内的元素
+- **ZDIFF ZINTER ZUNION** 求差集 交集 并集
+
+*上述所有排序默认都是升序。如果要降序，则在命令的Z后面添加REV即可*
