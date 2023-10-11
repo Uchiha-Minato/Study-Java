@@ -67,3 +67,109 @@ Gradle:
 ### 4. 释放连接
 
     jedis.close();
+
+### Jedis连接池
+
+Jedis本身是线程不安全的，并且频繁地创建和销毁连接会有性能损耗。因此使用连接池来代替直连。
+
+```java
+public class JedisConnectionFactory {
+    private static final JedisPool jedisPool;
+
+    static {
+        // 配置连接池
+        JedisPoolConfig config = new JedisPoolConfig();
+        // 配置连接池
+        config.setMaxTotal(8); // 最大连接数
+        config.setMaxIdle(8); // 最大空闲连接
+        config.setMinIdle(0); // 最小空闲连接
+        config.setMaxWaitMillis(1000);
+        // 创建连接池对象
+        jedisPool = new JedisPool(config,
+                "192.168.43.225", 6380, 1000,"123456");
+    }
+
+    public static Jedis getJedis() {
+        return jedisPool.getResource();
+    }
+}
+```
+
+## SpringDataRedis
+
+SpringDataRedis是Spring中数据操作的模块，包含对各种数据库的集成。
+
+*其中对Redis的集成模块就叫SpringDataRedis。*
+
+https://spring.io/projects/spring-data-redis
+
+* 提供了对不同Redis客户端的整合（Lettuce和Jedis）
+* 提供了RedisTemplate统一API来操作Redis
+* 支持Redis哨兵(Redis-sentinel)和集群(Redis-cluster)
+* 支持基于Lettuce的响应式编程
+* 支持基于JDK、JSON、字符串、Spring对象的数据序列化及反序列化
+* 支持基于Redis的JDKCollection实现
+
+SpringDataRedis中提供了RedisTemplate工具类，其中封装了各种对Redis的操作。并且将不同数据类型的操作API封装到了不同的类型中。
+
+|API|返回值类型|说明|
+|---|---|---|
+|redisTemplate.opsForValue()|ValueOperations|操作String类型数据|
+|redisTemplate.opsForHash()|HashOperations|操作Hash类型数据|
+|redisTemplate.opsForList()|ListOperations|操作List类型数据|
+|redisTemplate.opsForSet()|SetOperations|操作Set类型数据|
+|redisTemplate.opsForZSet()|ZSetOperations|操作SortedSet类型命令|
+|redisTemplate|---|通用的命令|
+
+使用步骤：
+* 引入spring-boot-starter-data-redis依赖
+
+```
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+```
+
+* 在application.yml中配置Redis信息
+```
+spring:
+  data:
+    redis:
+      host: 192.168.43.225
+      port: 6380
+      password: 123456
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 1000ms
+```
+* 注入RedisTemplates，开始使用
+
+```java
+@Autowired
+private RedisTemplate redisTemplate;
+    
+@Test
+void contextLoads() {
+	// 写入一条数据
+	redisTemplate.opsForValue().set("name","马保国");
+	Object name = redisTemplate.opsForValue().get("name");
+	System.out.println(name);
+}
+```
+
+RedisTemplate可以接收任意Object作为值写入Redis。
+
+**只不过写入前会把Object序列化为字节形式，默认采用JDK序列化。**
+
+    马保国 -> \xAC\xED\x00\x05t\x00	\xE9\xA9\xAC\xE4\xBF\x9D\xE5\x9B\xBD
+
+缺点：
+* 可读性差
+* 内存占用大
+
+解决方法：
+- **更改默认序列化工具类。**
