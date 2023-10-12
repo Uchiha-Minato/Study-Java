@@ -110,6 +110,8 @@ https://spring.io/projects/spring-data-redis
 * 支持基于JDK、JSON、字符串、Spring对象的数据序列化及反序列化
 * 支持基于Redis的JDKCollection实现
 
+### 方案一 ：自定义RedisTemplate
+
 SpringDataRedis中提供了RedisTemplate工具类，其中封装了各种对Redis的操作。并且将不同数据类型的操作API封装到了不同的类型中。
 
 |API|返回值类型|说明|
@@ -173,3 +175,63 @@ RedisTemplate可以接收任意Object作为值写入Redis。
 
 解决方法：
 - **更改默认序列化工具类。**
+
+自定义RedisSerializer，写的时候自动序列化，读的时候自动反序列化。
+
+```java
+@Configuration
+public class RedisConfig {
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        //创建RedisTemplate对象
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        //设置连接工厂
+        template.setConnectionFactory(connectionFactory);
+        //创建JSON序列化工具
+        GenericJackson2JsonRedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
+        //设置Key的序列化
+        template.setKeySerializer(RedisSerializer.string());
+        template.setHashKeySerializer(RedisSerializer.string());
+        //设置value的序列化
+        template.setValueSerializer(jsonRedisSerializer);
+        template.setHashValueSerializer(jsonRedisSerializer);
+        //返回
+        return template;
+    }
+}
+```
+尽管JSON序列化方式可以满足需求，但依然存在一些问题：
+
+![jsonserializer](./redis_pic/json序列化.png)
+
+*其中，多了一行序列化时自动添加的数据。*
+
+### 方案二 ： StringRedisTemplate
+
+**为了节省内存空间，统一使用String序列化器，要求只能存储String类型的Key和Value。**
+
+*当需要存储Java对象时，手动完成对象的序列化和反序列化。*
+
+![serialize](./redis_pic/手动序列化.png)
+
+```java
+@Autowired
+private StringRedisTemplate stringRedisTemplate;
+
+private static final ObjectMapper mapper = new ObjectMapper();
+
+@Test
+void setSaveUser() throws JsonProcessingException {
+    //创建对象
+    User user = new User("虎哥", 21);
+    //手动序列化
+    String json = mapper.writeValueAsString(user);
+    //写入数据
+    stringRedisTemplate.opsForValue().set("user:200", json);
+    //获取数据
+    String jsonUser = stringRedisTemplate.opsForValue().get("user:200");
+    //手动反序列化
+    User user1 = mapper.readValue(jsonUser, User.class);
+    System.out.println("user1 = " + user1);
+}
+```
