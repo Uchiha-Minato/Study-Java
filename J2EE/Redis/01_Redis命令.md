@@ -145,3 +145,55 @@ SortedSet的每一个元素都带有一个score属性，可以基于score属性�
 - **ZDIFF ZINTER ZUNION** 求差集 交集 并集
 
 *上述所有排序默认都是升序。如果要降序，则在命令的Z后面添加REV即可*
+
+
+## docker启动Redis
+
+拉取镜像 查看镜像：
+    
+    docker pull redis
+    docker images 查看镜像
+
+编辑配置文件    
+
+    vim redis.conf 配置文件
+
+redis.conf:
+
+    # 默认127.0.0.1 限制redis只能本地访问
+    bind 0.0.0.0 
+    
+    # 设置端口号 默认6379
+    port 6380
+    
+    # 默认yes，开启保护模式，限制为本地访问
+    protected-mode no
+    
+    # 默认no，改为yes意为以守护进程方式启动，可后台运行
+    # 除非kill进程，改为yes会使配置文件方#式启动redis失败
+    daemonize no
+
+    # redis持久化
+    appendonly yes
+
+    # 设置密码
+    requirepass 123456
+
+启动命令：
+    
+    docker run --name redis720
+    --restart=always [启动docker时自动启动此容器]
+    -v [配置文件redis.conf在机器中的位置]:/etc/redis/redis.conf
+    -v [数据目录/data在机器中的位置]:/data
+    -d redis:7.2.0 redis-server /etc/redis/redis.conf
+    [-d代表后台启动]
+
+进入容器：
+
+    docker exec -it redis720 redis-cli -p 6380
+    127.0.0.1:6380 > 
+    127.0.0.1:6380 > auth 123456
+    OK
+    127.0.0.1:6380 > 操作
+
+
