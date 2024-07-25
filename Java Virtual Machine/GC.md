@@ -16,9 +16,13 @@
 
     其中新生代又分为 From,To,Eden区
 
-3.**new出来的对象出生在E区，当E区被填满时触发Minor GC**
+3.**new出来的对象出生在Eden区，当E区被填满时触发Minor GC**
 
-    Minor GC使用复制算法，E区不被标记的对象复制到S0区，然后将E区与S1区剩下的对象全部删除，下一次触发Minor GC时，E区与S0区的对象重复上述复制操作到S1区，如此循环往复使得S0与S1区交替使用
+    Minor GC使用复制算法
+    Eden区不被标记的对象复制到From区，然后将Eden区与To区剩下的对象全部删除
+    下一次触发Minor GC时，Eden区与From区的对象重复上述复制操作到To区
+    如此循环往复使得From区与To区交替使用
+    
         优点：比直接把堆内存分两块复制利用率高
         From,To,Eden的大小比默认为 1:1:8
 
@@ -82,9 +86,9 @@
 
 当GC发生时，对象没有被直接的强引用所引用，那么它就有可能被回收。
 
-    软引用：GC触发后，内存依然不够，且软引用对象没有被强引用，就会把软引用的对象回收。
+- 软引用：GC触发后，内存依然不够，且软引用对象没有被强引用，就会把软引用的对象回收。
 
-    弱引用：只要发生了GC，不管内存够不够，都会将弱引用回收。
+- 弱引用：只要发生了GC，不管内存够不够，都会将弱引用回收。
 
 *软、弱引用都可以配合引用队列工作。*
 
@@ -186,7 +190,7 @@
 
 JVM将堆内存分为 *新生代Young Generation* 和 *老年代Old Generation*
 
-其中，新生代又进一步分为 *E(Eden)区 - 伊甸园* 、*From(S0)区* 、*To(S1)区*，S0与S1区都是幸存区
+其中，新生代又进一步分为 *Eden区 - 伊甸园* 、*From(S0)区* 、*To(S1)区*，From与To区都是幸存区
 
     对象首先分配在Eden区。
     新生代空间不足时，触发Minor GC（复制算法）；
@@ -293,7 +297,7 @@ JVM将堆内存分为 *新生代Young Generation* 和 *老年代Old Generation*
 - 适合多核cpu
 - 让单位时间内GC时stop the world时间最短
 
-![parallelGc](../Pictures/UseParallelGC.png)
+![parallelGC](../Pictures/UseParallelGC.png)
 
 VM参数：
 
@@ -334,8 +338,12 @@ VM参数：
 
 - -XX:+UseConcMarkSweepGC ~ -XX:+UseParNewGC ~ SerialOld
 
-    Concurrent并发 CMS工作在老年代，标记+清除算法；
+    Concurrent并发 
+    
+    CMS工作在老年代，标记+清除算法；
+    
     ParNewGC 工作在新生代，复制算法。
+    
     当并发失败时，CMS退化到串行垃圾回收的SerialOld
     做一次串行整理，减少内存碎片后CMS才能继续工作。
 
@@ -368,7 +376,7 @@ JDK 9 弃用了CMS垃圾回收器，改用G1作为默认垃圾回收器。
 
     每个区域都可以独立作为Eden、From、To、新生代、老年代。
 
-- 整体上是 **标记+整理**算法，*区域之间是复制算法* 。
+- 整体上是 **标记+整理** 算法，*区域之间是复制算法* 。
 
 VM参数：
 - -XX:+UseG1GC
@@ -421,8 +429,7 @@ G1会根据VM参数：**-XX:MaxGCPauseMillis=ms 最大暂停时间**有选择地
 
 如果回收速度 < 新产生垃圾的速度，并发收集失败，退化为串行收集。
 
-    这时就叫Full GC。
-    跟CMS很像。
+*这时就叫Full GC。跟CMS很像。*
 
 **(6) Young Collection跨代引用 - 老年代引用新生代**
 
@@ -580,7 +587,7 @@ concurrent refinement threads 更新 Remembered Set
 
 *Oracle建议保持新生代内存大于总堆大小的25%-50%。*
 
-理想情况：**新生代能容纳所有【并发量*(请求-响应)】的数据**
+理想情况：**新生代能容纳所有【并发量\*(请求-响应)】的数据**
 
 - 幸存区（From、To）大到能保留【当前活跃对象+需要晋升对象】
 
@@ -616,11 +623,13 @@ concurrent refinement threads 更新 Remembered Set
 1. Full GC和Minor GC频繁
 
     主要原因：空间太小。
+    
     解决方法：想办法增大新生代空间和幸存区空间。
 
 2. 请求高峰期发生Full GC，单次暂停时间特别长（CMS）
 
     主要原因：重新标记耗时过长（扫描老年代和新生代的所有对象）
+    
     解决方案：在重新标记之前先对新生代进行一次垃圾回收，
     使得重新标记阶段扫描的对象少很多。
     VM参数：-XX:+CMSScavengeBeforeRemark
