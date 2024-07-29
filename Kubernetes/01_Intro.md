@@ -75,7 +75,11 @@ apiserver负责公开K8s API，负责处理接受请求的工作。
 - 服务账号控制器 ServiceAccount Controller
 
     为新的namespace创建默认服务账号。
-  
+
+#### kubectl
+
+命令行工具。通过kubectl对apiserver操作，apiserver相应并返回操作的结果。
+
 #### cloud-controller-manager
 
 云控制器管理器允许将本地集群连接到云提供商的 API 之上，并将与该云平台交互的组件同与本地集群交互的组件分离开来。
@@ -85,6 +89,12 @@ apiserver负责公开K8s API，负责处理接受请求的工作。
 #### kubelet
 
 在每个Node中都有，保证容器运行在Pod中。
+
+负责容器真正运行的核心组件。
+
+- Pod创建，修改，监控，删除等生命周期管理
+- 定时上报本地Node信息给apiserver
+- 与apiserver通信管理其他组件
 
 #### kube-proxy
 
@@ -97,6 +107,51 @@ apiserver负责公开K8s API，负责处理接受请求的工作。
 负责管理K8s环境中容器的执行和生命周期。
 
 K8s支持很多运行时环境，如`containered`，`CRI-O`以及`Kubernetes-CRI`的其他任何实现。
+
+### 核心资源对象
+
+#### Pod
+
+一组紧密关联的容器集合，这些容器共享PID，IPC，网络和命名空间，是k8s调度的基本单位。
+
+*容器本质上就是进程。*
+
+创建Pod的基本流程：
+
+- 用户通过REST api创建一个Pod
+- apiserver将这个Pod写入etcd
+- scheduler将这个Pod绑定给Node
+- kubelet检测到有Pod，通过容器运行时启动Pod
+- kubelet通过容器运行时取到Pod状态，并更新到apiserver中
+
+#### Label
+
+Label是识别k8s对象的标签，以键值对的方式附加到对象上。
+
+Label不提供唯一性，很多时候都使用相同的label来标识具体的应用。
+
+#### Namespace
+
+是对一组资源和对象的抽象集合。**是k8s划分不同工作空间的一个逻辑单位。**
+
+*Node，PV等资源不属于任何Namespace，是全局的。*
+
+#### Deployment
+
+用于创建同一个容器的多个拷贝，支持滚动更新。
+
+创建Deployment时，需要指定：
+
+- Pod模板：用于创建Pod副本的模板
+- Label标签：Deployment需要监控的Pod标签
+
+#### Service
+
+是应用服务的抽象，通过Label为应用提供负载均衡和服务发现。
+
+匹配 Labels 的 Pod IP 和端口列表组成 Endpoints，由 kube-proxy 负责将服务 IP 负载均衡到这些 Endpoints 上。
+
+每个 Service 都会自动分配一个 cluster IP（仅在集群内部可访问的虚拟地址）和 DNS 名，其他容器可以通过该地址或 DNS 来访问服务，而不需要了解后端容器的运行。
 
 ```
 优雅终止Pod
