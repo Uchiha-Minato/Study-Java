@@ -144,3 +144,39 @@ Linux操作系统的文件系统分为两大类：
 |移动（重命名）文件|mv|mv test1.c abc.txt|
 |删除文件|rm|rm abc.txt|
 
+### 安装软件包
+
+#### RPM - Red Hat Package Manager
+
+    *Red Hat, CentOS, Fedora等可以直接使用*
+
+Debian、Ubuntu需要使用apt命令安装rpm：
+
+    sudo apt-get install rpm
+
+基本用法：`rpm [options] [package_file]`
+
+|选项|说明|
+|---|---|
+|-i,--install|安装一个包|
+|-v|显示详细信息|
+|-h|打印#，显示安装进度|
+|-U,--update|升级一个包|
+|-e,--erase|卸载一个包|
+|-q,--query|查询一个包|
+|-V,--verify|校验一个包|
+
+#### yum/dnf
+
+- YUM - Yellowdog Updater Modified
+- DNF - Dandified Yum
+
+    *Red Hat, CentOS, Fedora等可以直接使用*
+
+Debian、Ubuntu需要使用apt命令安装dnf：
+
+    sudo apt-get install dnf
+
+基本用法：`dnf/yum [options] [command] [package ...]`
+
+
