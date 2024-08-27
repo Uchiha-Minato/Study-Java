@@ -82,11 +82,11 @@ Linux操作系统的文件系统分为两大类：
 
 ## 文件存取权限
 
-|权限|普通文件的存取权限|目录的存取权限|
-|----|----|----|
-|r|可读|可读文件名|
-|w|可写|能建立和删除文件，可以改变文件名|
-|x|可执行|能使用该目录下的文件(如cd命令)搜索文件|
+|权限|普通文件的存取权限|目录的存取权限|权重数|
+|----|----|----|----|
+|r|可读|可读文件名|4|
+|w|可写|能建立和删除文件，可以改变文件名|2|
+|x|可执行|能使用该目录下的文件(如cd命令)搜索文件|1|
 
 有三种类型的用户可以存取文件：
 
@@ -103,6 +103,17 @@ Linux操作系统的文件系统分为两大类：
     其他用户。
 
 每种类型的用户都有rwx三种存取权限。
+
+|权限数|效果|
+|---|---|
+|7|rwx|
+|6|rw-|
+|5|r-x|
+|4|r--|
+|3|-wx|
+|2|-w-|
+|1|--x|
+|0|---|
 
 ### 修改存取权限
 
@@ -143,10 +154,13 @@ Linux操作系统的文件系统分为两大类：
 |拷贝文件|cp|cp file1 file2|
 |移动（重命名）文件|mv|mv test1.c abc.txt|
 |删除文件|rm|rm abc.txt|
+|更改文件所有者|chown|chown root /u|
+|更改文件权限|chmod|chmod 755 test.txt|
+|查看文件树状结构|tree|tree|
 
-### 安装软件包
+## 安装软件包
 
-#### RPM - Red Hat Package Manager
+### RPM - Red Hat Package Manager
 
     *Red Hat, CentOS, Fedora等可以直接使用*
 
@@ -166,7 +180,7 @@ Debian、Ubuntu需要使用apt命令安装rpm：
 |-q,--query|查询一个包|
 |-V,--verify|校验一个包|
 
-#### yum/dnf
+### yum/dnf
 
 - YUM - Yellowdog Updater Modified
 - DNF - Dandified Yum
@@ -178,5 +192,48 @@ Debian、Ubuntu需要使用apt命令安装dnf：
     sudo apt-get install dnf
 
 基本用法：`dnf/yum [options] [command] [package ...]`
+
+### apt
+
+Debian、Ubuntu中默认使用。
+
+*apt更新软件包需要sudo权限。*
+
+基本用法：`apt [options] [command]`
+
+## 系统管理
+
+|解释|命令|举例|
+|----|----|----|
+|显示系统资源使用情况|top|top|
+|列出当前进程信息快照|ps|ps -aux|
+|终止运行的进程（发送SIGTERM信号）|kill|kill [pid]|
+|显示磁盘空间使用情况|df|df -h|
+|显示目录空间使用情况|du|du -h|
+
+## 网络通信
+
+|解释|命令|举例|
+|----|----|----|
+|测试连接|ping|ping baidu.com|
+|查看网络状态|ifconfig|ifconfig|
+||ip address|ip a|
+|显示网络连接，路由和接口信息|netstat|netstat -4|
+|远程连接到主机|ssh|ssh [user@host]|
+|复制文件到其他主机|scp|scp [file] [user]@host:[path]|
+
+## 管道符 |
+
+**管道符前的命令的标准输出结果作为管道符后命令的标准输入（参数）。**
+
+例如：查看本机的ip地址
+
+    ifconfig | grep inet
+    ip addr | grep inet
+
+*管道符可以连续使用。*
+
+## vim编辑器
+
 
 
