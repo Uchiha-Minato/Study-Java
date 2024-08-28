@@ -222,6 +222,12 @@ Debian、Ubuntu中默认使用。
 |远程连接到主机|ssh|ssh [user@host]|
 |复制文件到其他主机|scp|scp [file] [user]@host:[path]|
 
+禁止外部主机ping本机：
+
+    iptables -I INPUT -p icmp --icmp-type 8 -j DROP
+
+*ping的原理：发送icmp包*
+
 ## 管道符 |
 
 **管道符前的命令的标准输出结果作为管道符后命令的标准输入（参数）。**
@@ -233,7 +239,40 @@ Debian、Ubuntu中默认使用。
 
 *管道符可以连续使用。*
 
-## vim编辑器
+## vi/vim编辑器
 
+vim.org说，vim是一个开发工具。
 
+共分为三种模式。
 
+- 命令模式(Command mode)
+- 输入模式(Insert mode)
+- 命令行模式(Command-Line mode)
+
+*输入':'即为命令行模式。*
+
+重要命令：
+
+|命令|解释|
+|---|---|
+|:w|保存|
+|:q|退出编辑器|
+|:q|不保存退出|
+|:e f|打开文件f|
+|:%s/x/y/g|'y'全局替换'x'|
+|i|进入输入模式|
+|esc|进入命令模式|
+|u|undo|
+|ctrl+r|redo|
+|G|移动到这个档案的最后一行|
+|nG|移动到第n行|
+|gg|移动到第一行|
+|yy|复制游标所在的那一行|
+|nyy|从游标处那一行向下复制n行|
+|p,P|p：在游标下一行粘贴；P：在游标上一行粘贴|
+|/word|从光标处向下查找word|
+|?word|从光标处向上查找word|
+|n|重复前一个搜索动作|
+|N|反向进行前一个搜索动作|
+|:set nu|显示行号|
+|:set nonu|不显示行号|
