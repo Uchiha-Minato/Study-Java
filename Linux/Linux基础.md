@@ -55,12 +55,13 @@ Linux操作系统的文件系统分为两大类：
 
 |符号|文件类型|
 |---|------|
-|-|普通文件|
-|d|目录文件|
-|b|块设备文件|
-|c|字符设备文件|
-|p|管道设备|
-|l|符号链接文件|
+|-|普通文件（Regular file）|
+|d|目录文件（directory）|
+|b|块设备文件（block device）|
+|c|字符设备文件（character）|
+|p|管道设备（FIFO）|
+|l|符号链接文件（Symbol link）|
+|s|套接字（socket）|
 
 例如：
 
@@ -156,7 +157,7 @@ Linux操作系统的文件系统分为两大类：
 |删除文件|rm|rm abc.txt|
 |更改文件所有者|chown|chown root /u|
 |更改文件权限|chmod|chmod 755 test.txt|
-|查看文件树状结构|tree|tree|
+|查看文件树状结构|tree|tree [directory]|
 
 ## 安装软件包
 
@@ -276,3 +277,12 @@ vim.org说，vim是一个开发工具。
 |N|反向进行前一个搜索动作|
 |:set nu|显示行号|
 |:set nonu|不显示行号|
+
+
+## 命令行操作技巧
+
+- Tab 
+- ctrl+c 取消输入，取消批处理
+- ctrl+w 删除一串连续的字符 
+
+
