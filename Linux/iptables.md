@@ -157,9 +157,11 @@ iptables的默认表，有3种内建链：
 |-v,--verbose|-v|详细输出|
 |-n,--numeric|-n|将ip和端口以数值输出|
 |-s,--source|-s address[CIDR]|数据包来源，网段或地址|
+||-s !address[CIDR]|指定地址之外的地址|
 |--dprot|--dport port|目标端口|
+|--sport|--sport port|源端口|
 |-d,--destination|-d address[CIDR]|目的地址|
-|-m,--match|-m match||
+|-m,--match|-m match|扩展匹配|
 
 ## 应用举例
 
@@ -188,4 +190,21 @@ icmptype
 
     iptables -A INPUT -p tcp -m multiport --dport 22,80,2222 -s 192.168.130.0/24 -j ACCEPT
 
- 
+### 允许转发
+
+    iptables -P FORWARD ACCEPT
+
+### 删除规则
+
+删除上面配置的开放22端口：
+
+    iptables -D INPUT -p tcp --dport 22 -s 192.168.1.1 -j ACCEPT
+
+清空指定链上的所有规则：
+
+    iptables -F chain
+
+删除指定链，需链中没有任何规则且没被其他链引用
+
+    iptables -X chain
+
