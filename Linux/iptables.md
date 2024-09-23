@@ -208,3 +208,67 @@ icmptype
 
     iptables -X chain
 
+<br>
+
+# ipset - 管理员IP集合工具
+
+*Administration tool for IP sets*
+
+    [root@test ~]# which ipset
+    /usr/sbin/ipset
+
+对一个ipset设置规则，整个ipset里的ip都对这个规则生效。
+
+基本用法：
+
+    ipset [选项] 命令 [命令选项]
+
+## 命令/选项说明
+
+|命令/选项|用法|说明|
+|--|--|--|
+|n, create|create/n setname typename [create options]|创建一个以setname和指定类型标识的集|
+|add|add setname add-entry [add options]|添加一个网段或IP到指定ipset|
+|del|del setname del-entry [del options]|从指定ipset中删除一个IP或网段|
+|test|test setname test-entry [test options]|查看ip或网段是否在指定ipset中|
+|x, destroy|destroy/x setname|删除指定ipset，如果没给参数则删除所有|
+|||假如ipset有引用，则不会删除任何ipset|
+|list|list [setname] [options]|列出指定集合的头数据和项，如果没有给出，则列出所有集合的头数据和项|
+|save|save [setname]|将给定的集合保存，如果没有指定集合，则将所有集合保存为restore可以读取的格式。选项-file可以用来指定文件名而不是标准输出
+|||-file的保存方式与Redis持久化的AOF类似|
+|restore|restore [-file]|恢复以save命令产生的已保存的session|
+|flush|flush [setname]|清除指定集合内的所有网段和IP，未指定则对所有现有集合生效|
+|e, rename|rename/e setname-from setname-to|给指定ipset改名|
+|w, swap|swap/w setname1 setname2|交换两个集合里的所有字段|
+||||
+|-!, -exist||当要创建完全相同的集合、添加已经添加的条目或删除丢失的条目时，忽略错误|
+|-o, -output|{plain / save / xml}|选择输出的格式|
+|-q, -quiet||忽略所有输出，如果命令没有执行成功则还是会报错|
+|-n, -name||只列出集合名|
+|-t, -terse||列出集合头部和集合名|
+|-f, -file|-f/-file filename|指定文件名|
+
+## 集合类型（typename）说明
+
+|类型|举例|说明|
+|--|--|--|
+|--|ipset n test1 [typename]|--|
+|--|ipset add test1|--|
+|bitmap||比特表存储|
+|hash||哈希存储|
+|bitmap:ip|192.168.1.1|--|
+|bitmap:ip,mac|192.168.1.1,01:02:03:04:05:06|--|
+|bitmap:port|80|--|
+|hash:ip|192.168.1.1|--|
+|hash:mac|01:02:03:04:05:06|--|
+|hash:ip,mac|192.168.1.1,01:02:03:04:05:06|--|
+|hash:net|192.168.1/24|--|
+|hash:net,net|192.168.1/24,192.168.2/24|地址范围生效|
+|hash:ip,port|192.168.1.1,tcp:443|--|
+|hash:net,port|192.168.1/26,8080|--|
+|hash:ip,port,ip|192.168.1.1,80,10.0.0.1|--|
+|hash:ip,port,net|192.168.1.1,80,192.168.2/24|--|
+|hash:ip,mark|192.168.1.1,0x63|mark是对ip的标记值|
+|hash:net,port,net|192.168.1/24,80,192.168.2/24|--|
+|hash:net,iface| 192.168.1.0/24,ens33|iface是要走的网卡|
+
