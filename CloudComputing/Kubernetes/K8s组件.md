@@ -2,6 +2,8 @@
 
 Kubernetes(k8s)是一个容器编排应用，云工作节点管理应用。
 
+k8s与docker一样，是Golang语言开发的顶级项目。
+
 ## 背景
 
 云原生开发，DevOps，CI/CD需求
@@ -27,7 +29,7 @@ DevOps = Development + Operations
 * Docker/Containered
 * Kubernetes
 
-## Kubernetes组件
+# Kubernetes组件
 
 当部署完K8s，则拥有了一个完整的集群。
 
@@ -37,9 +39,9 @@ DevOps = Development + Operations
 
 ![k8s cluster](./k8s_pic/k8s_cluster.png)
 
-### 控制平面组件 Control Plane Components
+## 控制平面组件 Control Plane Components
 
-#### kube-apiserver
+### kube-apiserver
 
 apiserver负责公开K8s API，负责处理接受请求的工作。
 
@@ -47,15 +49,31 @@ apiserver负责公开K8s API，负责处理接受请求的工作。
 
 设计上考虑了水平扩缩，可以运行多个kube-apiserver的实例来实现负载均衡。
 
-#### etcd
+*即部署多个master节点。*
 
-一致且高可用的键值对存储，作为K8s所有集群数据的DB。
+任务：
 
-#### kube-scheduler
+- 提供集群的RESTful API供外部或其他组件使用；
+
+    *比如可以外部访问https://masterip:6443，通常返回403*
+
+- 处理客户端的请求，包括创建、读取、更新和删除资源；
+
+- 验证和授权请求，确保只有合适的用户和应用程序可以执行操作；
+
+- **将集群变更信息写入etcd。**
+
+### etcd
+
+一致且高可用的**分布式***键值对*存储，作为K8s所有集群数据的DB。
+
+*一般k8集群备份就备份etcd。*
+
+### kube-scheduler
 
 负责监视新创建的Pod，并选择节点来让Pod运行。
 
-#### kube-controller-manager
+### kube-controller-manager
 
 负责运行**控制器进程**。
 
@@ -76,17 +94,17 @@ apiserver负责公开K8s API，负责处理接受请求的工作。
 
     为新的namespace创建默认服务账号。
 
-#### kubectl
+### kubectl
 
 命令行工具。通过kubectl对apiserver操作，apiserver相应并返回操作的结果。
 
-#### cloud-controller-manager
+### cloud-controller-manager
 
 云控制器管理器允许将本地集群连接到云提供商的 API 之上，并将与该云平台交互的组件同与本地集群交互的组件分离开来。
 
-### Node组件
+## Node组件
 
-#### kubelet
+### kubelet
 
 在每个Node中都有，保证容器运行在Pod中。
 
@@ -96,21 +114,21 @@ apiserver负责公开K8s API，负责处理接受请求的工作。
 - 定时上报本地Node信息给apiserver
 - 与apiserver通信管理其他组件
 
-#### kube-proxy
+### kube-proxy
 
 每个Node上运行的网络代理，维护Node上的一些网络规则。
 
 一般情况下Kube-proxy只做流量转发。
 
-#### Container Runtime
+### Container Runtime
 
 负责管理K8s环境中容器的执行和生命周期。
 
 K8s支持很多运行时环境，如`containered`，`CRI-O`以及`Kubernetes-CRI`的其他任何实现。
 
-### 核心资源对象
+## 核心资源对象
 
-#### Pod
+### Pod
 
 一组紧密关联的容器集合，这些容器共享PID，IPC，网络和命名空间，是k8s调度的基本单位。
 
@@ -124,19 +142,19 @@ K8s支持很多运行时环境，如`containered`，`CRI-O`以及`Kubernetes-CRI
 - kubelet检测到有Pod，通过容器运行时启动Pod
 - kubelet通过容器运行时取到Pod状态，并更新到apiserver中
 
-#### Label
+### Label
 
 Label是识别k8s对象的标签，以键值对的方式附加到对象上。
 
 Label不提供唯一性，很多时候都使用相同的label来标识具体的应用。
 
-#### Namespace
+### Namespace
 
 是对一组资源和对象的抽象集合。**是k8s划分不同工作空间的一个逻辑单位。**
 
 *Node，PV等资源不属于任何Namespace，是全局的。*
 
-#### Deployment
+### Deployment
 
 用于创建同一个容器的多个拷贝，支持滚动更新。
 
@@ -145,7 +163,7 @@ Label不提供唯一性，很多时候都使用相同的label来标识具体的�
 - Pod模板：用于创建Pod副本的模板
 - Label标签：Deployment需要监控的Pod标签
 
-#### Service
+### Service
 
 是应用服务的抽象，通过Label为应用提供负载均衡和服务发现。
 
