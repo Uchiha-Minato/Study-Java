@@ -316,3 +316,93 @@ API 组通常由两部分组成：组名和版本号。
 apiVersion: apps/v1 中的 apps 是组名，v1 是版本号。
 
 ***核心组没有组名。***
+
+## RBAC verbs
+
+|verb|说明|
+|--|--|
+|get|能查看单个资源的详细信息|
+|list|只能列出所有资源|
+|watch|监视资源变化|
+|create|创建资源|
+|update|更新资源|
+|patch|部分更新资源|
+|delete|删除资源|
+|deletecollection|删除资源集合|
+
+## 在HTTP请求中使用RBAC获取资源
+
+
+
+
+********
+
+# Service Account - SA
+
+ServiceAccount是给运行在Pod中的程序使用的身份认证
+
+**Pod容器的进程需要访问API Server时用的就是ServiceAccount账户**
+
+*ServiceAccount仅局限它所在的namespace*，每个namespace创建时都会自动创建一个default service account和与之对应的Secret
+
+创建Pod时，如果没有指定Service Account，Pod则会使用default Service Account。
+
+*未指定sa：*
+
+```yaml
+[root@node ~]# kubectl get po -n test1 nginx1-... -o yaml
+
+apiVersion: v1
+Kind: Pod
+metadata: ...
+spec: 
+  ...
+  volumeMounts:
+  - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    name: kube-api-access-nwt9c
+    readOnly: true
+  ...
+  serviceAccountName: default
+  ...
+  volumes:
+  - name: kube-api-access-nwt9c
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+  ...
+```
+
+自动使用默认的sa。
+
+```bash
+[root@node ~]# kubectl get secrets -n test1 
+NAME                  TYPE                                  DATA   AGE
+default-token-q58d9   kubernetes.io/service-account-token   3      45d
+```
+
+进入Pod查看sa：
+
+```bash
+kubectl exec -it -n <ns> <pod> /bin/bash`
+```
+![sainpod](./k8s_pic/sa_in_pod.png)
+
+## 自定义SA
+
+sa.yaml
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: test1
+  name: sa-test1
+```
+或者
+```bash
+kubectl create sa <name> -n <ns>
+```
+
